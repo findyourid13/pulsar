@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Pulsar</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+      }
+
+      /* Percentage heights need a definite ancestor chain — without this,
+         #card-root falls back to its content's height (the flat card)
+         instead of the full window, and 3D rotation clips against that
+         undersized box. */
+      #card-root {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="card-root"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

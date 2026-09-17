@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  # The proxy is a separate, dependency-free deployable (see server/) that
+  # Node runs directly with no build step — vitest's own transform can't
+  # catch a syntax error specific to Node's native TypeScript stripping
+  # (this already happened once: a constructor parameter property compiled
+  # fine everywhere vitest looked, then failed `node proxy.ts` outright with
+  # ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX). This job boots it exactly the way an
+  # operator would, with no npm install, to catch that class of bug directly.
+  proxy-boot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Boot proxy.ts with node directly and check it answers
+        working-directory: server
+        env:
+          AUTH_APP_ID: ci-test
+          AUTH_CLIENT_ID: ci-test
+          AUTH_CA_ID: ci-test
+          APP_SECRET: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+          PLATFORM_API_URL: https://example.invalid
+          AUTH_PROVIDER_ENDPOINT: https://auth.example.invalid
+          ENCRYPTED_HEADER_NAME: x-test-encrypted
+          LOGIN_EXCHANGE_PATH: /test/login
+          REFRESH_PATH: /test/refresh
+          AUTH_PROVIDER_HEADERS_JSON: '{"app-id":"$APP_ID","client-id":"$CLIENT_ID","ca-id":"$CA_ID"}'
+          PLATFORM_CLIENT_HEADERS_JSON: '{"User-Agent":"test-client"}'
+          PORT: '8788'
+        run: |
+          node proxy.ts &
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8788/refresh \
+              -H 'Content-Type: application/json' -d '{}' || true)
+            [ "$code" = "400" ] && exit 0
+            sleep 0.5
+          done
+          echo "proxy never answered with the expected 400 on an empty /refresh body"
+          exit 1
