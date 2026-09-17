@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="400" viewBox="0 0 250 400">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#2a2a5e"/>
+    </linearGradient>
+  </defs>
+  <rect width="250" height="400" rx="14" fill="url(#g)"/>
+  <rect x="10" y="10" width="230" height="380" rx="8" fill="none" stroke="#5a5aa0" stroke-width="2"/>
+  <text x="125" y="190" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#e8e8f8">PULSAR</text>
+  <text x="125" y="220" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#9a9ac8">dev placeholder — back</text>
+</svg>
