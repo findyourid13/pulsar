@@ -1,0 +1,16 @@
+node_modules/
+out/
+dist/
+release/
+pulsar-design-doc.md
+*.log
+*.tsbuildinfo
+.DS_Store
+.env
+*.har
+
+# Real objekt artwork is MODHAUS's and must never be bundled/committed (see design doc §1).
+# dev-front.svg / dev-back.svg are synthetic placeholders and stay tracked.
+src/renderer/assets/*
+!src/renderer/assets/dev-front.svg
+!src/renderer/assets/dev-back.svg
