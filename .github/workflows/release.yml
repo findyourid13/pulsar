@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: Mark as pre-release
+        type: boolean
+        default: true
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            flag: --mac
+          - os: windows-latest
+            flag: --win
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Build and publish
+        shell: bash
+        run: |
+          RELEASE_TYPE=release
+          if [ "${{ github.event_name }}" != "push" ] && [ "${{ inputs.prerelease }}" != "false" ]; then
+            RELEASE_TYPE=prerelease
+          fi
+          npx electron-builder ${{ matrix.flag }} --publish always -c.publish.releaseType=$RELEASE_TYPE
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

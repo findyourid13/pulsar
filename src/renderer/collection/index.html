@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Choose objekts</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --columns: 5;
+        --tint: #95a9d7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 13px;
+        color: CanvasText;
+        background: Canvas;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        height: 100%;
+      }
+      .filters {
+        border-right: 1px solid color-mix(in srgb, CanvasText 15%, transparent);
+        padding: 14px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        /* Its own column, independently scrollable — never scrolls away
+           with the grid, even when the filter list itself is taller than
+           the window (html/body overflow:hidden is what makes that hold).
+           min-height:0 overrides a grid item's default min-height:auto,
+           which otherwise refuses to shrink below content height and grows
+           the whole page instead of scrolling in place. */
+        min-height: 0;
+      }
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .filter-group label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        opacity: 0.6;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        color: inherit;
+      }
+      input[type='text'],
+      select {
+        padding: 5px 6px;
+        border-radius: 5px;
+        border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+        background: Canvas;
+      }
+      .filter-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: auto;
+        padding-top: 14px;
+        border-top: 1px solid color-mix(in srgb, CanvasText 15%, transparent);
+      }
+      button {
+        padding: 6px 10px;
+        border-radius: 5px;
+        border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+        background: Canvas;
+        cursor: pointer;
+      }
+      button:hover {
+        background: color-mix(in srgb, CanvasText 8%, transparent);
+      }
+      .grid-area {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0; /* same grid-item stretch issue as .filters above */
+      }
+      .status-bar {
+        padding: 10px 14px;
+        border-bottom: 1px solid color-mix(in srgb, CanvasText 15%, transparent);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .status-bar #status {
+        opacity: 0.7;
+      }
+      .status-bar button {
+        flex-shrink: 0;
+      }
+      .grid {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px;
+        display: grid;
+        grid-template-columns: repeat(var(--columns), 1fr);
+        gap: 10px;
+        align-content: start;
+      }
+      /* No overflow:hidden here — a grid item with non-visible overflow has
+         its automatic minimum size (its contribution to this auto-sized
+         row track) treated as zero per the Grid spec, regardless of
+         aspect-ratio. That collapsed every row to ~4px (just the border)
+         while each .thumb still rendered at its full aspect-ratio height,
+         so rows overlapped instead of stacking. Rounding/clipping now
+         happens on the children below instead. */
+      .thumb {
+        position: relative;
+        aspect-ratio: 5 / 8;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        background: color-mix(in srgb, CanvasText 6%, transparent);
+      }
+      .thumb.selected {
+        border-color: var(--tint);
+      }
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 4px;
+      }
+      .thumb .check {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--tint);
+        color: white;
+        font-size: 12px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .thumb.selected .check {
+        display: flex;
+      }
+      .thumb .caption {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 4px 6px;
+        font-size: 10px;
+        color: white;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-radius: 0 0 4px 4px;
+      }
+      .empty {
+        padding: 40px;
+        text-align: center;
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="filters">
+        <div class="filter-group">
+          <label for="search" data-i18n="collectionSearch">Search</label>
+          <input id="search" type="text" data-i18n-placeholder="collectionSearchPlaceholder" placeholder="Member, season, class…" autocomplete="off" />
+        </div>
+        <div class="filter-group">
+          <label for="filter-artist" data-i18n="collectionArtist">Artist</label>
+          <select id="filter-artist"><option value="" data-i18n="collectionAll">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-member" data-i18n="collectionMember">Member</label>
+          <select id="filter-member"><option value="" data-i18n="collectionAll">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-season" data-i18n="collectionSeason">Season</label>
+          <select id="filter-season"><option value="" data-i18n="collectionAll">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-class" data-i18n="collectionClass">Class</label>
+          <select id="filter-class"><option value="" data-i18n="collectionAll">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-type" data-i18n="collectionType">Type</label>
+          <select id="filter-type">
+            <option value="" data-i18n="collectionAll">All</option>
+            <option value="Online" data-i18n="collectionOnline">Online</option>
+            <option value="Offline" data-i18n="collectionOffline">Offline</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="sort" data-i18n="collectionSortBy">Sort by</label>
+          <select id="sort">
+            <option value="newest" data-i18n="collectionNewest">Newest</option>
+            <option value="oldest" data-i18n="collectionOldest">Oldest</option>
+            <option value="member" data-i18n="collectionMember">Member</option>
+            <option value="season" data-i18n="collectionSeason">Season</option>
+            <option value="class" data-i18n="collectionClass">Class</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="columns" data-i18n="collectionColumns">Columns</label>
+          <input id="columns" type="range" min="2" max="8" value="5" />
+        </div>
+        <div class="filter-actions">
+          <button id="select-all" data-i18n="collectionSelectAll">Select all shown</button>
+          <button id="clear-selection" data-i18n="collectionClearSelection">Clear selection</button>
+        </div>
+      </aside>
+      <main class="grid-area">
+        <div class="status-bar">
+          <span id="status"></span>
+          <button id="refresh-collection" data-i18n="collectionRefresh">Refresh collection</button>
+        </div>
+        <div class="grid" id="grid"></div>
+      </main>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

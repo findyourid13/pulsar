@@ -1,0 +1,32 @@
+.card-scene {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-press {
+  /* Full container, not just the card's own box — the canvas (and thus the
+     WebGL camera frustum) needs the same margin around the card that the
+     idle bob and parallax tilt have always animated within. The card's
+     actual on-screen size is computed in three.ts (mirroring the old
+     min(70%, 70vh * 5/8) formula) and applied to the mesh, not this box. */
+  width: 100%;
+  height: 100%;
+  transition: transform 120ms ease;
+  /* Purely a transform anchor for the press-scale effect — never itself
+     hit-tested; three.ts's hitTest raycasts against the mesh directly. */
+  pointer-events: none;
+}
+
+.card-press.is-pressed {
+  transform: scale(0.96);
+}
+
+.card {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
